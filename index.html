@@ -3,92 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ojisan Invader - オジサンインベーダー</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>おじさんインベーダー</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 20px #0f0;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: #000;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #0f0;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0, 255, 0, 0.5);
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f00;
+            font-size: 48px;
+            text-align: center;
+            display: none;
+            text-shadow: 2px 2px 4px rgba(255, 0, 0, 0.5);
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0f0;
+            font-size: 24px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 255, 0, 0.5);
+        }
+    </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="game-header">
-            <h1>オジサンインベーダー</h1>
-            <div class="score-display">
-                <span>Score: <span id="score">0</span></span>
-                <span>Lives: <span id="lives">3</span></span>
-            </div>
-        </div>
-        
+    <div id="gameContainer">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
-        
-        <div class="game-controls">
-            <p>← → Arrow Keys: Move | Spacebar: Shoot Necktie Beam</p>
-            <p>Avoid the ¥500,000 bills! Defeat the cabaret girls!</p>
+        <div id="ui">
+            <div>スコア: <span id="score">0</span></div>
+            <div>ライフ: <span id="lives">3</span></div>
         </div>
-        
-        <div id="gameOverScreen" class="game-overlay hidden">
-            <div class="overlay-content">
-                <h2>Game Over</h2>
-                <p>Final Score: <span id="finalScore">0</span></p>
-                <button id="restartButton">Play Again</button>
+        <div id="gameOver">
+            <div>ゲームオーバー</div>
+            <div style="font-size: 16px; margin-top: 20px;">スペースキーでリスタート</div>
+        </div>
+        <div id="startScreen">
+            <div>おじさんインベーダー</div>
+            <div style="font-size: 16px; margin-top: 20px;">
+                矢印キー: 移動<br>
+                スペースキー: ネクタイビーム発射<br>
+                ¥500,000札を避けてキャバ嬢を倒そう！
             </div>
-        </div>
-        
-        <div id="menuScreen" class="game-overlay">
-            <div class="overlay-content">
-                <h2>オジサンインベーダー</h2>
-                <p>Middle-aged man vs. Cabaret girls!</p>
-                <button id="startButton">Start Game</button>
-                <div class="instructions">
-                    <h3>How to Play:</h3>
-                    <ul>
-                        <li>Use ← → arrow keys to move</li>
-                        <li>Press spacebar to shoot necktie beams</li>
-                        <li>Defeat cabaret girls for points</li>
-                        <li>Avoid the ¥500,000 bill obstacles</li>
-                    </ul>
-                </div>
+            <div style="font-size: 14px; margin-top: 20px; color: #fff;">
+                スペースキーで開始
             </div>
         </div>
     </div>
-
-    <!-- Core ECS System -->
-    <script type="module" src="js/core/Entity.js"></script>
-    <script type="module" src="js/core/Component.js"></script>
-    <script type="module" src="js/core/System.js"></script>
-    <script type="module" src="js/core/World.js"></script>
     
-    <!-- Components -->
-    <script type="module" src="js/components/Position.js"></script>
-    <script type="module" src="js/components/Velocity.js"></script>
-    <script type="module" src="js/components/Sprite.js"></script>
-    <script type="module" src="js/components/Health.js"></script>
-    <script type="module" src="js/components/Collision.js"></script>
-    <script type="module" src="js/components/Player.js"></script>
-    <script type="module" src="js/components/Enemy.js"></script>
-    <script type="module" src="js/components/Projectile.js"></script>
-    <script type="module" src="js/components/Obstacle.js"></script>
-    
-    <!-- Systems -->
-    <script type="module" src="js/systems/MovementSystem.js"></script>
-    <script type="module" src="js/systems/CollisionSystem.js"></script>
-    <script type="module" src="js/systems/RenderSystem.js"></script>
-    <script type="module" src="js/systems/InputSystem.js"></script>
-    <script type="module" src="js/systems/EnemySpawnSystem.js"></script>
-    <script type="module" src="js/systems/ObstacleSpawnSystem.js"></script>
-    <script type="module" src="js/systems/CleanupSystem.js"></script>
-    
-    <!-- Utils -->
-    <script type="module" src="js/utils/AssetManager.js"></script>
-    <script type="module" src="js/utils/ObjectPool.js"></script>
-    <script type="module" src="js/utils/MathUtils.js"></script>
-    
-    <!-- Game States -->
-    <script type="module" src="js/states/GameState.js"></script>
-    <script type="module" src="js/states/MenuState.js"></script>
-    <script type="module" src="js/states/PlayingState.js"></script>
-    <script type="module" src="js/states/GameOverState.js"></script>
-    <script type="module" src="js/states/StateManager.js"></script>
-    
-    <!-- Main Game Engine -->
-    <script type="module" src="js/GameEngine.js"></script>
-    <script type="module" src="js/main.js"></script>
+    <script src="js/game-engine.js"></script>
+    <script src="js/game-objects.js"></script>
+    <script src="js/input-system.js"></script>
+    <script src="js/ui-system.js"></script>
+    <script src="js/sound-system.js"></script>
+    <script src="js/main.js"></script>
 </body>
-</html>
+</html> 

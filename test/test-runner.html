@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>おじさんインベーダー - テストランナー</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            margin: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+        }
+        
+        .test-button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        
+        .test-button:hover {
+            background: #00ff00;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #111;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        
+        h1, h2 {
+            color: #0f0;
+            text-shadow: 2px 2px 4px rgba(0, 255, 0, 0.3);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #004400;
+            color: #00ff00;
+        }
+        
+        .status.error {
+            background: #440000;
+            color: #ff0000;
+        }
+        
+        .status.running {
+            background: #444400;
+            color: #ffff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 おじさんインベーダー - テストランナー</h1>
+        
+        <div class="test-section">
+            <h2>ユニットテスト</h2>
+            <p>個別のコンポーネントの動作をテストします。</p>
+            <button class="test-button" onclick="runUnitTests()">ユニットテスト実行</button>
+            <div id="unit-test-results" class="test-results" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>E2Eテスト</h2>
+            <p>ゲーム全体の統合テストを実行します。</p>
+            <button class="test-button" onclick="runE2ETests()">E2Eテスト実行</button>
+            <div id="e2e-test-results" class="test-results" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>ゲーム実行</h2>
+            <p>実際のゲームを実行してテストします。</p>
+            <button class="test-button" onclick="openGame()">ゲームを開く</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>テスト結果サマリー</h2>
+            <div id="test-summary">
+                <p>テストを実行してください。</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ゲームのJavaScriptファイルを読み込み -->
+    <script src="../js/game-engine.js"></script>
+    <script src="../js/game-objects.js"></script>
+    <script src="../js/input-system.js"></script>
+    <script src="../js/ui-system.js"></script>
+    <script src="../js/sound-system.js"></script>
+    <script src="../js/main.js"></script>
+    
+    <!-- テストファイルを読み込み -->
+    <script src="unit-tests.js"></script>
+    <script src="e2e-tests.js"></script>
+    
+    <script>
+        // テスト結果を表示する関数
+        function showTestResults(testType, results) {
+            const resultsDiv = document.getElementById(`${testType}-test-results`);
+            resultsDiv.textContent = results;
+            resultsDiv.style.display = 'block';
+            
+            // サマリーを更新
+            updateTestSummary();
+        }
+        
+        // テストサマリーを更新
+        function updateTestSummary() {
+            const summaryDiv = document.getElementById('test-summary');
+            const unitResults = document.getElementById('unit-test-results');
+            const e2eResults = document.getElementById('e2e-test-results');
+            
+            let summary = '';
+            
+            if (unitResults.style.display !== 'none') {
+                const unitText = unitResults.textContent;
+                const unitMatch = unitText.match(/テスト結果: (\d+)個成功, (\d+)個失敗/);
+                if (unitMatch) {
+                    summary += `ユニットテスト: ${unitMatch[1]}個成功, ${unitMatch[2]}個失敗\n`;
+                }
+            }
+            
+            if (e2eResults.style.display !== 'none') {
+                const e2eText = e2eResults.textContent;
+                const e2eMatch = e2eText.match(/E2Eテスト結果: (\d+)個成功, (\d+)個失敗/);
+                if (e2eMatch) {
+                    summary += `E2Eテスト: ${e2eMatch[1]}個成功, ${e2eMatch[2]}個失敗\n`;
+                }
+            }
+            
+            if (summary === '') {
+                summary = 'テストを実行してください。';
+            }
+            
+            summaryDiv.innerHTML = `<pre>${summary}</pre>`;
+        }
+        
+        // ユニットテストを実行
+        function runUnitTests() {
+            const resultsDiv = document.getElementById('unit-test-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.textContent = 'テスト実行中...';
+            
+            // コンソール出力をキャプチャ
+            const originalLog = console.log;
+            let testOutput = '';
+            
+            console.log = function(...args) {
+                testOutput += args.join(' ') + '\n';
+                originalLog.apply(console, args);
+            };
+            
+            try {
+                runUnitTests();
+                showTestResults('unit', testOutput);
+            } catch (error) {
+                showTestResults('unit', `テスト実行エラー: ${error.message}\n${testOutput}`);
+            } finally {
+                console.log = originalLog;
+            }
+        }
+        
+        // E2Eテストを実行
+        async function runE2ETests() {
+            const resultsDiv = document.getElementById('e2e-test-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.textContent = 'E2Eテスト実行中...';
+            
+            // コンソール出力をキャプチャ
+            const originalLog = console.log;
+            let testOutput = '';
+            
+            console.log = function(...args) {
+                testOutput += args.join(' ') + '\n';
+                originalLog.apply(console, args);
+            };
+            
+            try {
+                await runE2ETests();
+                showTestResults('e2e', testOutput);
+            } catch (error) {
+                showTestResults('e2e', `E2Eテスト実行エラー: ${error.message}\n${testOutput}`);
+            } finally {
+                console.log = originalLog;
+            }
+        }
+        
+        // ゲームを開く
+        function openGame() {
+            window.open('../index.html', '_blank');
+        }
+        
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('テストランナーが初期化されました。');
+        });
+    </script>
+</body>
+</html> 

@@ -1,251 +1,179 @@
-import { GameEngine } from './GameEngine.js';
+/**
+ * メインゲームファイル - すべてのシステムを統合
+ */
+
+// グローバル変数
+let gameEngine;
+let inputSystem;
+let uiSystem;
+let soundSystem;
 
 /**
- * Main entry point for the Ojisan Invader game
+ * ゲームを初期化
  */
-class OjisamInvader {
-    constructor() {
-        this.gameEngine = null;
-        this.canvas = null;
-        this.isInitialized = false;
+function initGame() {
+    const canvas = document.getElementById('gameCanvas');
+    
+    if (!canvas) {
+        console.error('Canvas element not found');
+        return;
     }
-
-    /**
-     * Initialize the game
-     */
-    async init() {
-        try {
-            console.log('Starting Ojisan Invader...');
-            
-            // Get canvas element
-            this.canvas = document.getElementById('gameCanvas');
-            if (!this.canvas) {
-                throw new Error('Canvas element not found');
-            }
-            
-            // Initialize canvas
-            this.initializeCanvas();
-            
-            // Create and initialize game engine
-            this.gameEngine = new GameEngine(this.canvas);
-            await this.gameEngine.init();
-            
-            // Setup window resize handling
-            this.setupResizeHandling();
-            
-            // Setup global error handling
-            this.setupErrorHandling();
-            
-            this.isInitialized = true;
-            console.log('Ojisan Invader initialized successfully');
-            
-            // Start the game
-            this.start();
-            
-        } catch (error) {
-            console.error('Failed to initialize Ojisan Invader:', error);
-            this.showErrorMessage(error.message);
-        }
-    }
-
-    /**
-     * Initialize canvas properties
-     */
-    initializeCanvas() {
-        // Set canvas size
-        this.canvas.width = 800;
-        this.canvas.height = 600;
-        
-        // Get context and set initial properties
-        const ctx = this.canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = false; // Pixel-perfect rendering
-        
-        // Add canvas focus handling
-        this.canvas.tabIndex = 1;
-        this.canvas.focus();
-        
-        console.log(`Canvas initialized: ${this.canvas.width}x${this.canvas.height}`);
-    }
-
-    /**
-     * Setup window resize handling
-     */
-    setupResizeHandling() {
-        let resizeTimeout;
-        
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                this.handleResize();
-            }, 250);
-        });
-        
-        // Initial resize
-        this.handleResize();
-    }
-
-    /**
-     * Handle window resize
-     */
-    handleResize() {
-        if (!this.canvas || !this.gameEngine) return;
-        
-        const container = this.canvas.parentElement;
-        if (!container) return;
-        
-        // Calculate new size while maintaining aspect ratio
-        const containerRect = container.getBoundingClientRect();
-        const aspectRatio = 800 / 600; // Original canvas aspect ratio
-        
-        let newWidth = containerRect.width - 40; // Account for padding
-        let newHeight = newWidth / aspectRatio;
-        
-        if (newHeight > containerRect.height - 100) { // Account for header and controls
-            newHeight = containerRect.height - 100;
-            newWidth = newHeight * aspectRatio;
-        }
-        
-        // Set minimum size
-        newWidth = Math.max(400, newWidth);
-        newHeight = Math.max(300, newHeight);
-        
-        // Apply size
-        this.canvas.style.width = `${newWidth}px`;
-        this.canvas.style.height = `${newHeight}px`;
-        
-        // Keep internal resolution fixed for pixel-perfect graphics
-        // this.canvas.width = 800;
-        // this.canvas.height = 600;
-    }
-
-    /**
-     * Setup global error handling
-     */
-    setupErrorHandling() {
-        window.addEventListener('error', (event) => {
-            console.error('Global error:', event.error);
-            // Don't show error to user for uncaught errors during gameplay
-        });
-        
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
-            event.preventDefault();
-        });
-    }
-
-    /**
-     * Start the game
-     */
-    start() {
-        if (!this.isInitialized || !this.gameEngine) {
-            console.error('Cannot start game: not initialized');
-            return;
-        }
-        
-        this.gameEngine.start();
-        console.log('Game started');
-    }
-
-    /**
-     * Stop the game
-     */
-    stop() {
-        if (this.gameEngine) {
-            this.gameEngine.stop();
-            console.log('Game stopped');
-        }
-    }
-
-    /**
-     * Restart the game
-     */
-    restart() {
-        if (this.gameEngine) {
-            this.gameEngine.destroy();
-        }
-        
-        setTimeout(() => {
-            this.init();
-        }, 100);
-    }
-
-    /**
-     * Show error message to user
-     * @param {string} message - Error message
-     */
-    showErrorMessage(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff4444;
-            color: white;
-            padding: 20px;
-            border-radius: 5px;
-            z-index: 1000;
-            font-family: Arial, sans-serif;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        `;
-        errorDiv.innerHTML = `
-            <strong>Error:</strong> ${message}<br>
-            <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px;">Reload Page</button>
-        `;
-        
-        document.body.appendChild(errorDiv);
-        
-        // Auto-remove after 10 seconds
-        setTimeout(() => {
-            if (errorDiv.parentElement) {
-                errorDiv.parentElement.removeChild(errorDiv);
-            }
-        }, 10000);
-    }
-
-    /**
-     * Get game statistics for debugging
-     * @returns {Object} - Game statistics
-     */
-    getStats() {
-        return this.gameEngine ? this.gameEngine.getStats() : null;
-    }
+    
+    // ゲームエンジンを初期化
+    gameEngine = new GameEngine(canvas);
+    
+    // サウンドシステムを初期化
+    soundSystem = new SoundSystem();
+    
+    // 入力システムを初期化
+    inputSystem = new InputSystem(gameEngine);
+    
+    // UIシステムを初期化
+    uiSystem = new UISystem(gameEngine);
+    
+    // ゲームエンジンを初期化
+    gameEngine.init();
+    
+    // ゲームループでUIを更新
+    updateUILoop();
+    
+    console.log('おじさんインベーダーが初期化されました！');
 }
 
 /**
- * Initialize and start the game when DOM is loaded
+ * UI更新ループ
  */
-document.addEventListener('DOMContentLoaded', async () => {
-    // Create global game instance
-    window.ojisamInvader = new OjisamInvader();
+function updateUILoop() {
+    if (uiSystem) {
+        uiSystem.updateUI();
+    }
+    requestAnimationFrame(updateUILoop);
+}
+
+/**
+ * ゲームエンジンの拡張 - サウンド統合
+ */
+const originalFireBullet = GameEngine.prototype.fireBullet;
+GameEngine.prototype.fireBullet = function() {
+    originalFireBullet.call(this);
+    if (soundSystem) {
+        soundSystem.playBeamSound();
+    }
+};
+
+const originalGameOver = GameEngine.prototype.gameOver;
+GameEngine.prototype.gameOver = function() {
+    originalGameOver.call(this);
+    if (soundSystem) {
+        soundSystem.playGameOverSound();
+        soundSystem.stopBGM();
+    }
+};
+
+const originalCheckLevelUp = GameEngine.prototype.checkLevelUp;
+GameEngine.prototype.checkLevelUp = function() {
+    const oldLevel = this.level;
+    originalCheckLevelUp.call(this);
+    if (this.level > oldLevel && soundSystem) {
+        soundSystem.playLevelUpSound();
+    }
+};
+
+// ゲームエンジンの衝突検出を拡張
+const originalCheckCollisions = GameEngine.prototype.checkCollisions;
+GameEngine.prototype.checkCollisions = function() {
+    const oldScore = this.score;
+    originalCheckCollisions.call(this);
     
-    // Initialize the game
-    await window.ojisamInvader.init();
+    // スコアが変わった場合（敵を倒した場合）
+    if (this.score > oldScore && soundSystem) {
+        soundSystem.playExplosionSound();
+    }
+};
+
+// ゲーム開始時の処理を拡張
+const originalStart = GameEngine.prototype.start;
+GameEngine.prototype.start = function() {
+    originalStart.call(this);
+    if (soundSystem) {
+        soundSystem.startBGM();
+    }
+};
+
+// ゲームリスタート時の処理を拡張
+const originalRestart = GameEngine.prototype.restart;
+GameEngine.prototype.restart = function() {
+    originalRestart.call(this);
+    if (soundSystem) {
+        soundSystem.startBGM();
+    }
+};
+
+/**
+ * ページ読み込み完了時にゲームを開始
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // 少し遅延させてから初期化（DOMの完全な読み込みを待つ）
+    setTimeout(initGame, 100);
 });
 
 /**
- * Handle page visibility changes
+ * ウィンドウリサイズ時の処理
  */
-document.addEventListener('visibilitychange', () => {
-    if (window.ojisamInvader && window.ojisamInvader.gameEngine) {
-        if (document.hidden) {
-            window.ojisamInvader.gameEngine.pause();
-        } else {
-            window.ojisamInvader.gameEngine.resume();
+window.addEventListener('resize', function() {
+    // 必要に応じてキャンバスサイズを調整
+    console.log('Window resized');
+});
+
+/**
+ * ページの可視性変更時の処理
+ */
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        // ページが非表示になった場合
+        if (soundSystem) {
+            soundSystem.stopBGM();
+        }
+    } else {
+        // ページが表示された場合
+        if (soundSystem && gameEngine && gameEngine.gameState === 'playing') {
+            soundSystem.startBGM();
         }
     }
 });
 
 /**
- * Expose debug functions to global scope
+ * エラーハンドリング
  */
+window.addEventListener('error', function(event) {
+    console.error('Game error:', event.error);
+});
+
+/**
+ * 未処理のPromise拒否のハンドリング
+ */
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+});
+
+// 開発用のデバッグ機能
 if (typeof window !== 'undefined') {
     window.debugGame = {
-        getStats: () => window.ojisamInvader?.getStats(),
-        restart: () => window.ojisamInvader?.restart(),
-        stop: () => window.ojisamInvader?.stop(),
-        start: () => window.ojisamInvader?.start()
+        getGameState: () => gameEngine ? gameEngine.gameState : 'not initialized',
+        getScore: () => gameEngine ? gameEngine.score : 0,
+        getLives: () => gameEngine ? gameEngine.lives : 0,
+        getLevel: () => gameEngine ? gameEngine.level : 0,
+        toggleSound: () => {
+            if (soundSystem) {
+                soundSystem.setEnabled(!soundSystem.enabled);
+                console.log('Sound enabled:', soundSystem.enabled);
+            }
+        },
+        setVolume: (volume) => {
+            if (soundSystem) {
+                soundSystem.setVolume(volume);
+                console.log('Volume set to:', volume);
+            }
+        }
     };
-}
-
-export { OjisamInvader };
+} 
